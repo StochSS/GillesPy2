@@ -19,7 +19,7 @@ gillespy2.remote.core.remote_simulation
 
 from gillespy2.remote.client.endpoint import Endpoint
 from gillespy2.remote.core.messages.simulation_run_cache import SimulationRunCacheRequest, SimulationRunCacheResponse
-from gillespy2.remote.core.messages.status import SimStatus
+from gillespy2.remote.core.messages.status import SimStatus, StatusRequest
 from gillespy2.remote.core.errors import RemoteSimulationError
 from gillespy2.remote.core.remote_results import RemoteResults
 
@@ -37,7 +37,7 @@ class RemoteSimulation:
     :param server: A server to run the simulation. Optional if host is provided.
     :type server: gillespy2.remote.Server
 
-    :param host: The address of a running instance of StochSS-Compute. Optional if server is provided.
+    :param host: The address of a running instance of gillespy2.remote. Optional if server is provided.
     :type host: str
 
     :param port: The port to use when connecting to the host.
@@ -80,28 +80,25 @@ class RemoteSimulation:
         '''
         Checks to see if a dummy simulation exists in the cache.
 
+        :param namespace: If provided, prepend to results path.
+        :type namespace: str
+
         :param params: Arguments for simulation.
         :type params: dict[str, Any]
 
         :returns: If the results are cached on the server.
         :rtype: bool
         '''
-        if "solver" in params:
-            if hasattr(params['solver'], 'is_instantiated'):
-                raise RemoteSimulationError(
-                    'RemoteSimulation does not accept an instantiated solver object. Pass a type.')
-            params["solver"] = f"{params['solver'].__module__}.{params['solver'].__qualname__}"
-        if self.solver is not None:
-            params["solver"] = f"{self.solver.__module__}.{self.solver.__qualname__}"
+        log.debug('is_cached()')
+        n_traj_requested = params.get('number_of_trajectories', 1)
+        n_traj_cached = self.get_n_traj_in_cache(namespace=namespace,
+                                                 **params)
+        if n_traj_requested <= n_traj_cached:
+            return True
+        else:
+            return False
 
-        sim_request = SimulationRunCacheRequest(model=self.model, namespace=namespace, **params)
-        results_dummy = RemoteResults()
-        results_dummy.id = sim_request.results_id
-        results_dummy.server = self.server
-        results_dummy.n_traj = params.get('number_of_trajectories', 1)
-        return results_dummy.is_ready
-
-    def run(self, namespace=None, ignore_cache=False, parallelize=False, submit_chunks=False, **params):
+    def run(self, namespace=None, ignore_cache=False, parallelize=False, chunk_trajectories=False, **params):
         # pylint:disable=line-too-long
         """
         Simulate the Model on the target ComputeServer, returning the results or a handle to a running simulation.
@@ -123,19 +120,16 @@ class RemoteSimulation:
         """
         # pylint:enable=line-too-long
 
-        if "solver" in params:
-            if hasattr(params['solver'], 'is_instantiated'):
-                raise RemoteSimulationError(
-                    'RemoteSimulation does not accept an instantiated solver object. Pass a type.')
-            params["solver"] = f"{params['solver'].__module__}.{params['solver'].__qualname__}"
-        if self.solver is not None:
-            params["solver"] = f"{self.solver.__module__}.{self.solver.__qualname__}"
+        params = self._encode_solver_arg(**params)
         sim_request = SimulationRunCacheRequest(self.model,
                                                 namespace=namespace,
                                                 ignore_cache=ignore_cache,
                                                 parallelize=parallelize,
-                                                submit_chunks=submit_chunks,
+                                                chunk_trajectories=chunk_trajectories,
                                                 **params)
+        log.debug('run()...')
+        log.debug('sim_request.results_id')
+        log.debug(sim_request.results_id)
         return self._run_cache(sim_request)
 
     def _run_cache(self, request):
@@ -143,6 +137,9 @@ class RemoteSimulation:
         :param request: Request to send to the server. Contains Model and related arguments.
         :type request: SimulationRunRequest
         '''
+        log.debug('_run_cache(request)...')
+        log.debug('request.kwargs.get("solver", None)')
+        log.debug(request.kwargs.get('solver', None))
         response_raw = self.server.post(Endpoint.SIMULATION_GILLESPY2, sub='/run/cache', request=request)
 
         if not response_raw.ok:
@@ -152,18 +149,104 @@ class RemoteSimulation:
 
         if sim_response.status == SimStatus.ERROR:
             raise RemoteSimulationError(sim_response.error_message)
-        # non-conforming object creation ... possible refactor needed to solve, so left in.
         if sim_response.status == SimStatus.READY:
-            remote_results =  RemoteResults(data=sim_response.results.data)
+            data = sim_response.results.data
         else:
-            remote_results =  RemoteResults()
+            data = None
+        return RemoteResults.factory(request.results_id,
+                                     self.server,
+                                     request.kwargs.get('number_of_trajectories', 1),
+                                     request.id,
+                                     request.namespace,
+                                     data)
 
-        remote_results.id = request.results_id
-        remote_results.task_id = request.id
-        remote_results.server = self.server
-        remote_results.n_traj = request.kwargs.get('number_of_trajectories', 1)
-        remote_results.namespace = request.namespace
+    def run_distributed(self, namespace=None, force_run=False, **params):
+        log.debug('run_distributed()...')
+        log.debug('namespace:')
+        log.debug(namespace)
+        log.debug('force_run:')
+        log.debug(force_run)
+        log.debug('params.get("solver", None)')
+        log.debug(params.get('solver', None))
+        params = self._encode_solver_arg(**params)
+        log.debug('params.get("solver", None)')
+        log.debug(params.get('solver', None))
+        response_raw = self.server.get(Endpoint.DASK, sub='/number_of_workers')
+        n_workers = int(response_raw.text)
+        log.debug('n_workers:')
+        log.debug(n_workers)
+        n_traj_requested = params.get('number_of_trajectories', 1)
+        results_collection = []
+        if force_run is True:
+            n_traj = n_traj_requested
+        if force_run is False:
+            n_traj_remote = self.get_n_traj_in_cache(namespace=namespace,
+                                                    **params)
+            log.debug('n_traj_remote:')
+            log.debug(n_traj_remote)
+            n_traj = n_traj_requested - n_traj_remote
+                
+        traj_per_worker = n_traj // n_workers
+        log.debug('traj_per_worker:')
+        log.debug(traj_per_worker)
+        extra_traj = n_traj % n_workers
+        log.debug('extra_traj:')
+        log.debug(extra_traj)
+        if traj_per_worker > 0:
+            for _ in range(n_workers):
+                params['number_of_trajectories'] = traj_per_worker
+                sim_request = SimulationRunCacheRequest(self.model,
+                                                        namespace=namespace,
+                                                        force_run=True,
+                                                        **params)
+                results_collection.append(self._run_cache(sim_request))
+        if extra_traj > 0:
+            params['number_of_trajectories'] = extra_traj
+            sim_request = SimulationRunCacheRequest(self.model,
+                                                    namespace=namespace,
+                                                    force_run=True,
+                                                    **params)
+            results_collection.append(self._run_cache(sim_request))
+        
+        return RemoteResults.factory(sim_request.results_id,
+                                     self.server,
+                                     n_traj_requested,
+                                     None,
+                                     sim_request.namespace,
+                                     None)
 
-        return remote_results
-
-# def run_parallel(self, namespace=None):
+    def get_n_traj_in_cache(self, namespace=None, **params) -> int:
+        log.debug('get_n_traj_in_cache()...')
+        log.debug('namespace:')
+        log.debug(namespace)
+        params = self._encode_solver_arg(**params)
+        simulation_request = SimulationRunCacheRequest(self.model,
+                                   namespace=namespace,
+                                   **params)
+        log.debug('simulation_request.results_id:')
+        log.debug(simulation_request.results_id)
+        n_traj = params.get('number_of_trajectories', 1)
+        status_request = StatusRequest(results_id=simulation_request.results_id,
+                                       n_traj=n_traj,
+                                       namespace=namespace)
+        response_raw = self.server.get(Endpoint.CACHE, sub='/number_of_trajectories', request=status_request)
+        n_traj_in_cache = int(response_raw.text)
+        log.debug('n_traj_in_cache:')
+        log.debug(n_traj_in_cache)
+        return n_traj_in_cache
+    
+    def _encode_solver_arg(self, **params):
+        log.debug('_encode_solver_arg()...')
+        value = params.get('solver', '') # Makes for a better fail if they pass something invalid.
+        log.debug('params.get("solver", None)')
+        log.debug(params.get('solver', None))
+        if type(value) is not str:
+            if hasattr(params['solver'], 'is_instantiated'):
+                raise RemoteSimulationError(
+                    'RemoteSimulation does not accept an instantiated solver object. Pass a type.')
+            params['solver'] = f"{value.__module__}.{value.__qualname__}"
+        if self.solver is not None and value == '':
+            params["solver"] = f"{self.solver.__module__}.{self.solver.__qualname__}"
+        log.debug('params.get("solver", None)')
+        log.debug(params.get('solver', None))
+        return params
