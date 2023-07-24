@@ -61,6 +61,16 @@ class RemoteResults(Results):
         self._data = data
     # pylint:enable=super-init-not-called
 
+    @staticmethod
+    def factory(id, server, n_traj, task_id=None, namespace=None, data=None):
+        remote_results =  RemoteResults(data=data)
+        remote_results.id = id
+        remote_results.task_id = task_id
+        remote_results.server = server
+        remote_results.n_traj = n_traj
+        remote_results.namespace = namespace
+        return remote_results
+
     @property
     def data(self):
         """
@@ -149,7 +159,7 @@ class RemoteResults(Results):
 
         if status == SimStatus.READY:
             log.info('Results ready. Fetching.......')
-            results_request = ResultsRequest(self.id, self.namespace)
+            results_request = ResultsRequest(self.id, self.namespace, self.n_traj)
             response_raw = self.server.get(Endpoint.SIMULATION_GILLESPY2, f"/results", request=results_request)
             if not response_raw.ok:
                 raise RemoteSimulationError(response_raw.reason)
