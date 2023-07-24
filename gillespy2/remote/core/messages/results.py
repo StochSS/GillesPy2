@@ -17,9 +17,10 @@ class ResultsRequest(Request):
     :type namespace: str
 
     '''
-    def __init__(self, results_id, namespace=None):
+    def __init__(self, results_id, namespace=None, n_traj=None):
         self.results_id = results_id
         self.namespace = namespace
+        self.n_traj = n_traj
 
     def encode(self):
         '''
@@ -40,7 +41,10 @@ class ResultsRequest(Request):
         :rtype: ResultsRequest
         '''
         request_dict = json_decode(raw_request)
-        return ResultsRequest(request_dict['results_id'], request_dict['namespace'])
+        results_id = request_dict.get('results_id', None)
+        namespace = request_dict.get('namespace', None)
+        n_traj = request_dict.get('n_traj', None)
+        return ResultsRequest(results_id, namespace, n_traj)
 
 class ResultsResponse(Response):
     '''
