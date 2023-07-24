@@ -35,7 +35,9 @@ class Server(ABC):
 
     _endpoints = {
         Endpoint.SIMULATION_GILLESPY2: "/api/v3/simulation/gillespy2",
-        Endpoint.CLOUD: "/api/v3/cloud"
+        Endpoint.CLOUD: "/api/v3/cloud",
+        Endpoint.CACHE: "/api/v3/cache",
+        Endpoint.DASK: '/api/v3/dask',
     }
 
     def __init__(self) -> None:
@@ -65,7 +67,8 @@ class Server(ABC):
         :returns: The HTTP response.
         :rtype: requests.Response
         '''
-        log.debug(request.encode())
+        if request is not None:
+            log.debug(request.encode())
         url = f"{self.address}{self._endpoints[endpoint]}{sub}"
         log.debug(url)
         n_try = 1
