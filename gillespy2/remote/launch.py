@@ -18,11 +18,11 @@ gillespy2.remote.launch
 
 import sys
 import asyncio
+from logging import INFO, getLevelName
 from argparse import ArgumentParser, Namespace
 from distributed import LocalCluster
 from gillespy2.remote.server.api import start_api
-
-from logging import INFO, getLevelName
+from gillespy2.remote.core.utils.dask import silence_dask_logs
 from gillespy2.remote.core.utils.log_config import init_logging
 log = init_logging(__name__)
 
@@ -58,10 +58,10 @@ def launch_server():
     '''
     def _parse_args() -> Namespace:
         desc = '''
-GillesPy2 Remote allows you to run simulations remotely on your own Dask cluster.
-To launch both simultaneously, use `gillespy2-remote-cluster` instead.
-Trajectories are automatically cached to support multiple users running the same model.
-'''
+        GillesPy2 Remote allows you to run simulations remotely on your own Dask cluster.
+        To launch both simultaneously, use `gillespy2-remote-cluster` instead.
+        Trajectories are automatically cached to support multiple users running the same model.
+        '''
         parser = ArgumentParser(description=desc, add_help=True, conflict_handler='resolve')
 
         parser = _add_shared_args(parser)
@@ -92,7 +92,8 @@ def launch_with_cluster():
         desc = '''
         Startup script for a GillesPy2 Remote and pre-configured Dask Distributed cluster.
         Command-line options allow you to override automatic cluster configuration.
-        Your trajectories are automatically cached to support multiple users running the same model.'''
+        Your trajectories are automatically cached to support multiple users running the same model.
+        '''
         parser = ArgumentParser(description=desc, add_help=True, conflict_handler='resolve')
 
         parser = _add_shared_args(parser)
@@ -110,20 +111,23 @@ def launch_with_cluster():
             Default will let Dask decide based on your CPU.')
         dask.add_argument('--dask-processes', default=None, required=False, type=bool,
             help='Whether to use processes (True) or threads (False). \
-            Defaults to True, unless worker_class=Worker, in which case it defaults to False.')
+            Defaults to True, unless worker_class=Worker, in which case it defaults to False.') # Keep as non-flag b/c of side effects.
         dask.add_argument('-D', '--dask-dashboard-address', default=':8787', required=False,
             help='Address on which to listen for the Bokeh diagnostics server \
             like ‘localhost:8787’ or ‘0.0.0.0:8787’. Defaults to ‘:8787’. \
             Set to None to disable the dashboard. Use ‘:0’ for a random port.')
         dask.add_argument('-N', '--dask-name', default=None, required=False,
             help='A name to use when printing out the cluster, defaults to the type name.')        
+        dask.add_argument('--silence-dask', default=False, action='store_true', required=False,
+            help='Enable this flag to silence dask INFO log output.')
         
         return  parser.parse_args()
 
 
     args = _parse_args()
     args.logging_level = getLevelName(args.logging_level)
-
+    if args.silence_dask is True:
+        silence_dask_logs()
     dask_args = {}
     for (arg, value) in vars(args).items():
         if arg.startswith('dask_'):
