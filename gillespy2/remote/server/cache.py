@@ -19,7 +19,6 @@ gillespy2.remote.server.cache
 
 import os
 from json.decoder import JSONDecodeError
-from datetime import datetime
 import random
 from filelock import SoftFileLock
 from gillespy2 import Results
@@ -36,6 +35,9 @@ class Cache:
 
     :param results_id: Simulation hash.
     :type results_id: str
+
+    :param namespace: Optional namespace.
+    :type namespace: str
     '''
     def __init__(self, cache_dir, results_id, namespace=None):
         if namespace is not None:
@@ -83,16 +85,18 @@ class Cache:
         '''
         Check if the results are ready to be retrieved from the cache.
 
-        :param n_traj_wanted: The number of requested trajectories.
+        :param n_traj_wanted: The number of requested trajectories. If set to 0, check if any.
         :type: int
 
         :returns: n_traj_wanted <= len(<Results in cache>)
         :rtype: bool
         '''
-        results = self.get()
-        if results is None or n_traj_wanted > len(results):
-            return False
-        return True
+        len_results = self.n_traj_in_cache()
+        if n_traj_wanted == 0 and len_results > 0:
+            return True
+        if n_traj_wanted <= len_results:
+            return True
+        return False
 
     def n_traj_needed(self, n_traj_wanted) -> int:
         '''
