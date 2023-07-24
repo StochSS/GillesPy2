@@ -24,7 +24,7 @@ from secrets import token_hex
 from gillespy2.remote.client.server import Server
 from gillespy2.remote.cloud.ec2_config import EC2LocalConfig, EC2RemoteConfig
 from gillespy2.remote.core.messages.source_ip import SourceIpRequest, SourceIpResponse
-from gillespy2.remote.cloud.exceptions import EC2ImportException, ResourceException, EC2Exception
+from gillespy2.remote.cloud.exceptions import ResourceException, EC2Exception
 from gillespy2.remote.client.endpoint import Endpoint
 from gillespy2.remote.core.utils.log_config import init_logging
 log = init_logging(__name__)
@@ -36,23 +36,7 @@ try:
     from paramiko import SSHClient, AutoAddPolicy
 except ImportError as err:
     name = __name__
-    log.warn('boto3 and parkamiko are required for %(name)s', locals())
-
-
-def _ec2_logger():
-    log = logging.getLogger("EC2Cluster")
-    log.setLevel(logging.INFO)
-    log.propagate = False
-
-    if not log.handlers:
-        _formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        _handler = logging.StreamHandler()
-        _handler.setFormatter(_formatter)
-        log.addHandler(_handler)
-
-    return log
-
+    log.warn('boto3 and paramiko are required for %(name)s', locals())
 
 class EC2Cluster(Server):
     """
@@ -66,7 +50,6 @@ class EC2Cluster(Server):
 
     :raises EC2Exception: possible boto3 ClientError from AWS calls. See `here <https://boto3.amazonaws.com/v1/documentation/api/latest/guide/error-handling.html#aws-service-exceptions>`_.
     """
-    log = _ec2_logger()
 
     _init = False
     _client = None
@@ -208,43 +191,43 @@ class EC2Cluster(Server):
                 vpc = self._resources.Vpc(vpc_id)
                 for instance in vpc.instances.all():
                     instance.terminate()
-                    self.log.info(
+                    log.info(
                         'Terminating "%s". This might take a minute.......', instance.id)
                     instance.wait_until_terminated()
                     self._server = None
-                    self.log.info('Instance "%s" terminated.', instance.id)
+                    log.info('Instance "%s" terminated.', instance.id)
                 for s_g in vpc.security_groups.all():
                     if s_g.group_name == self._remote_config.security_group_name:
-                        self.log.info('Deleting "%s".......', s_g.id)
+                        log.info('Deleting "%s".......', s_g.id)
                         s_g.delete()
                         self._server_security_group = None
-                        self.log.info('Security group "%s" deleted.', s_g.id)
+                        log.info('Security group "%s" deleted.', s_g.id)
                     elif s_g.group_name == 'default':
                         self._default_security_group = None
                 for subnet in vpc.subnets.all():
-                    self.log.info('Deleting %s.......', subnet.id)
+                    log.info('Deleting %s.......', subnet.id)
                     subnet.delete()
                     self._subnets['public'] = None
-                    self.log.info('Subnet %s deleted.', subnet.id)
+                    log.info('Subnet %s deleted.', subnet.id)
                 for igw in vpc.internet_gateways.all():
-                    self.log.info('Detaching %s.......', igw.id)
+                    log.info('Detaching %s.......', igw.id)
                     igw.detach_from_vpc(VpcId=vpc.vpc_id)
-                    self.log.info('Gateway %s detached.', igw.id)
-                    self.log.info('Deleting %s.......', igw.id)
+                    log.info('Gateway %s detached.', igw.id)
+                    log.info('Deleting %s.......', igw.id)
                     igw.delete()
-                    self.log.info('Gateway %s deleted.', igw.id)
-                self.log.info('Deleting %s.......', vpc.id)
+                    log.info('Gateway %s deleted.', igw.id)
+                log.info('Deleting %s.......', vpc.id)
                 vpc.delete()
                 self._vpc = None
-                self.log.info('VPC %s deleted.', vpc.id)
+                log.info('VPC %s deleted.', vpc.id)
             try:
                 self._client.describe_key_pairs(
                     KeyNames=[self._remote_config.key_name])
                 key_pair = self._resources.KeyPair(
                     self._remote_config.key_name)
-                self.log.info(
+                log.info(
                     'Deleting "%s".', self._remote_config.key_name)
-                self.log.info(
+                log.info(
                     'Key "%s" deleted.', self._remote_config.key_name)
                 key_pair.delete()
             except:
@@ -259,7 +242,7 @@ class EC2Cluster(Server):
         """
         Launches required network resources.
         """
-        self.log.info("Launching Network.......")
+        log.info("Launching Network.......")
         self._create_sssc_vpc()
         self._create_sssc_subnet(public=True)
         self._create_sssc_subnet(public=False)
@@ -288,10 +271,10 @@ class EC2Cluster(Server):
         Deletes key from local filesystem if it exists.
         """
         if os.path.exists(self._local_config.key_path):
-            self.log.info(
+            log.info(
                 'Deleting "%s".', self._local_config.key_path)
             os.remove(self._local_config.key_path)
-            self.log.info('"%s" deleted.', self._local_config.key_path)
+            log.info('"%s" deleted.', self._local_config.key_path)
 
     def _create_sssc_vpc(self):
         """
@@ -478,7 +461,7 @@ docker run --network host --rm -t -e CLOUD_LOCK={cloud_key} --name sssc stochss/
             'UserData': launch_commands,
         }
 
-        self.log.info(
+        log.info(
             'Launching StochSS-Compute server instance. This might take a minute.......')
         try:
             response = self._client.run_instances(**kwargs)
@@ -491,16 +474,16 @@ docker run --network host --rm -t -e CLOUD_LOCK={cloud_key} --name sssc stochss/
         self._server.wait_until_exists()
         self._server.wait_until_running()
 
-        self.log.info('Instance "%s" is running.', instance_id)
+        log.info('Instance "%s" is running.', instance_id)
 
         self._poll_launch_progress(['sssc'])
 
-        self.log.info('Restricting server access to only your ip.')
+        log.info('Restricting server access to only your ip.')
         source_ip = self._get_source_ip(cloud_key)
 
         self._restrict_ingress(source_ip)
         self._init = True
-        self.log.info('StochSS-Compute ready to go!')
+        log.info('StochSS-Compute ready to go!')
 
     def _poll_launch_progress(self, container_names, mock=False):
         """
@@ -543,7 +526,7 @@ docker run --network host --rm -t -e CLOUD_LOCK={cloud_key} --name sssc stochss/
                         "Something went wrong connecting to the server. No exit status provided by the server.")
                 # Wait for yum update, docker install, container download
                 if rc == 1 or rc == 127:
-                    self.log.info('Waiting on Docker daemon.')
+                    log.info('Waiting on Docker daemon.')
                     sshtries += 1
                     if sshtries >= 5:
                         ssh.close()
@@ -552,7 +535,7 @@ docker run --network host --rm -t -e CLOUD_LOCK={cloud_key} --name sssc stochss/
                 if rc == 0:
                     if 'true\n' in out:
                         sleep(10)
-                        self.log.info('Container "%s" is running.', container)
+                        log.info('Container "%s" is running.', container)
                         break
         ssh.close()
 
@@ -601,7 +584,7 @@ docker run --network host --rm -t -e CLOUD_LOCK={cloud_key} --name sssc stochss/
                     pass
             return False
         if len(vpc_response['Vpcs']) == 2:
-            self.log.error('More than one VPC named "%s".',
+            log.error('More than one VPC named "%s".',
                            self._remote_config.vpc_name)
             self._set_status('VPC error')
             raise ResourceException
@@ -614,7 +597,7 @@ docker run --network host --rm -t -e CLOUD_LOCK={cloud_key} --name sssc stochss/
                 if tag['Key'] == 'Name' and tag['Value'] == self._remote_config.server_name:
                     self._server = instance
         if self._server is None:
-            self.log.warn('No instances named "%s".',
+            log.warn('No instances named "%s".',
                           self._remote_config.server_name)
             self._set_status('server error')
             errors = True
@@ -626,12 +609,12 @@ docker run --network host --rm -t -e CLOUD_LOCK={cloud_key} --name sssc stochss/
                     if rule['FromPort'] == self._remote_config.api_port \
                             and rule['ToPort'] == self._remote_config.api_port \
                             and rule['IpRanges'][0]['CidrIp'] == '0.0.0.0/0':
-                        self.log.warn('Security Group rule error.')
+                        log.warn('Security Group rule error.')
                         self._set_status('security group error')
                         errors = True
                 self._server_security_group = s_g
         if self._server_security_group is None:
-            self.log.warn('No security group named "%s".',
+            log.warn('No security group named "%s".',
                           self._remote_config.security_group_name)
             self._set_status('security group error')
             errors = True
@@ -642,13 +625,13 @@ docker run --network host --rm -t -e CLOUD_LOCK={cloud_key} --name sssc stochss/
                 if tag['Key'] == 'Name' and tag['Value'] == f'{self._remote_config.subnet_name}-private':
                     self._subnets['private'] = subnet
         if None in self._subnets.values():
-            self.log.warn('Missing or misconfigured subnet.')
+            log.warn('Missing or misconfigured subnet.')
             self._set_status('subnet error')
             errors = True
         if errors is True:
             raise ResourceException
         else:
             self._init = True
-            self.log.info('Cluster loaded.')
+            log.info('Cluster loaded.')
             self._set_status(self._server.state['Name'])
             return True
