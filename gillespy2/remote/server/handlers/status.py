@@ -16,11 +16,9 @@ gillespy2.remote.server.status
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 from distributed import Client
 from tornado.web import RequestHandler
-from gillespy2.remote.core.errors import RemoteSimulationError
-from gillespy2.remote.core.messages.status import SimStatus, StatusRequest, StatusResponse
+from gillespy2.remote.core.messages.status import SimStatus, StatusResponse
 from gillespy2.remote.server.cache import Cache
 
 from gillespy2.remote.core.utils.log_config import init_logging
@@ -55,12 +53,8 @@ class StatusHandler(RequestHandler):
         '''
         Process Status GET request.
         '''
-        
-        # status_request = StatusRequest.parse(self.request)
-        log.debug(self.request.query_arguments)
-
         results_id = self.get_query_argument('results_id')
-        n_traj = self.get_query_argument('n_traj', None)
+        n_traj = self.get_query_argument('n_traj', 0)
         if n_traj is not None:
             n_traj = int(n_traj)
         task_id = self.get_query_argument('task_id', None)
@@ -72,6 +66,7 @@ class StatusHandler(RequestHandler):
         log.info(msg_0)
 
         msg_1 = f'<{results_id}> | <{task_id}> | Status:'
+        running_msg = f'{msg_1} {SimStatus.RUNNING.name}'
         dne_msg = f'{msg_1} {SimStatus.DOES_NOT_EXIST.name}'
         ready_msg = f'{msg_1} {SimStatus.READY.name}'
         
@@ -94,8 +89,8 @@ class StatusHandler(RequestHandler):
                 
                 else:
 
-                    log.info(dne_msg)
-                    self._respond_dne()
+                    log.info(running_msg)
+                    self._respond_running('Simulation still running.')
             
             else:
             
@@ -119,8 +114,8 @@ class StatusHandler(RequestHandler):
                     
                     else:
 
-                        log.info(dne_msg)
-                        self._respond_dne()
+                        log.info(running_msg)
+                        self._respond_running('Simulation still running.')
 
         else:
             log.debug('cache.exists(): False')
