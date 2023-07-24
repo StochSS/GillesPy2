@@ -20,4 +20,4 @@ gillespy2.remote.core.debug
 from logging import getLogger
 getLogger().setLevel('DEBUG')
 # Call the line below in a python process to initiate client-side logging
-# import gillespy2.remote.core.debug 
+# import gillespy2.remote.core.utils.debug 
