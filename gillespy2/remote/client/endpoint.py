@@ -25,4 +25,6 @@ class Endpoint(Enum):
     '''
     SIMULATION_GILLESPY2 = 1
     CLOUD = 2
+    CACHE = 3
+    DASK = 4
     
