@@ -42,8 +42,6 @@ class ResultsHandler(RequestHandler):
         :param cache_dir: Path to the cache.
         :type cache_dir: str
         '''
-        # while cache_dir.endswith('/'):
-        #     cache_dir = cache_dir[:-1]
         self.cache_dir = cache_dir
 
     async def get(self):
@@ -58,6 +56,7 @@ class ResultsHandler(RequestHandler):
         '''
         results_id = self.get_query_argument('results_id', None)
         n_traj = self.get_query_argument('n_traj', 0)
+        n_traj = int(n_traj)
         namespace = self.get_query_argument('namespace', None)
         if results_id is None:
             self.set_status(404, reason=f'Malformed request: {self.request.uri}')
@@ -67,13 +66,16 @@ class ResultsHandler(RequestHandler):
         log.info(msg)
         cache = Cache(self.cache_dir, results_id, namespace=namespace)
         if cache.is_ready(n_traj_wanted=n_traj):
+            log.debug('cache.is_ready()...')
+            log.debug('n_traj')
+            log.debug(n_traj)
             if n_traj > 0:
                 results = cache.get_sample(n_traj)
+                results = results.to_json()
             else:
                 results = cache.read()
             results_response = ResultsResponse(results)
             self.write(results_response.encode())
         else:
-            # This should not happen!
             self.set_status(404, f'Results "{results_id}" not found.')
         self.finish()
