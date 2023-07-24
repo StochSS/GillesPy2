@@ -11,6 +11,9 @@ from gillespy2.remote.core.exceptions import MessageParseException
 from gillespy2.remote.core.messages.base import Request, Response
 from gillespy2.remote.core.messages.status import SimStatus
 
+from gillespy2.remote.core.utils.log_config import init_logging
+log = init_logging(__name__)
+
 class SimulationRunCacheRequest(Request):
     '''
     A simulation request message object.
@@ -24,7 +27,14 @@ class SimulationRunCacheRequest(Request):
     :param kwargs: kwargs for the model.run() call.
     :type kwargs: dict[str, Any]
     '''
-    def __init__(self, model, namespace=None, ignore_cache=False, parallelize=False, chunk_trajectories=False, **kwargs):
+    def __init__(self,
+                 model,
+                 namespace=None,
+                 force_run=False,
+                 ignore_cache=False,
+                 parallelize=False,
+                 chunk_trajectories=False,
+                 **kwargs):
         self.model = model
         self.kwargs = kwargs
         self.id = token_hex(16)
@@ -33,6 +43,7 @@ class SimulationRunCacheRequest(Request):
         else:
             self.results_id = self.hash()
         self.namespace = namespace
+        self.force_run = force_run
         self.ignore_cache = ignore_cache
         self.parallelize = parallelize
         self.chunk_trajectories = chunk_trajectories
@@ -47,6 +58,7 @@ class SimulationRunCacheRequest(Request):
                 'id': self.id,
                 'results_id': self.results_id,
                 'namespace': self.namespace,
+                'force_run': self.force_run,
                 'ignore_cache': self.ignore_cache,
                 'parallelize': self.parallelize,
                 'chunk_trajectories': self.chunk_trajectories,
@@ -73,13 +85,15 @@ class SimulationRunCacheRequest(Request):
         id = request_dict.get('id', None) # apply correct token (from raw request) after object construction.
         results_id = request_dict.get('results_id', None) # apply correct token (from raw request) after object construction.
         namespace = request_dict.get('namespace', None)
+        force_run = request_dict.get('force_run', None)
         ignore_cache = request_dict.get('ignore_cache', None)
         parallelize = request_dict.get('parallelize', None)
         chunk_trajectories = request_dict.get('chunk_trajectories', None)
-        if None in (model, id, results_id, ignore_cache, parallelize, chunk_trajectories):
+        if None in (model, id, results_id, force_run, ignore_cache, parallelize, chunk_trajectories):
             raise MessageParseException        
         _ = SimulationRunCacheRequest(model,
                                       namespace=namespace,
+                                      force_run=force_run,
                                       ignore_cache=ignore_cache,
                                       parallelize=parallelize,
                                       chunk_trajectories=chunk_trajectories,
@@ -96,14 +110,19 @@ class SimulationRunCacheRequest(Request):
         :returns: md5 hex digest.
         :rtype: str
         '''
+        log.debug('SimulationRunCacheRequest.hash()...')
         anon_model_string = self.model.to_anon().to_json(encode_private=False)
         popped_kwargs = {kw:self.kwargs[kw] for kw in self.kwargs if kw!='number_of_trajectories'}
         # Explanation of line above:
         # Take 'self.kwargs' (a dict), and add all entries to a new dictionary,
         # EXCEPT the 'number_of_trajectories' key/value pair.
         kwargs_string = json_encode(popped_kwargs)
+        log.debug('kwargs_string:')
+        log.debug(kwargs_string)
         request_string =  f'{anon_model_string}{kwargs_string}'
         _hash = md5(str.encode(request_string)).hexdigest()
+        log.debug('_hash:')
+        log.debug(_hash)
         return _hash
 
 
