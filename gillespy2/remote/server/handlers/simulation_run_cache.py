@@ -58,8 +58,11 @@ class SimulationRunCacheHandler(RequestHandler):
         Process simulation run request.
         '''
         sim_request = SimulationRunCacheRequest.parse(self.request.body)
-        log.debug(sim_request.encode())
-        log.debug('%(namespace)s', locals())
+        log.debug('sim_request...')
+        log.debug('.results_id:')
+        log.debug(sim_request.results_id)
+        log.debug('.id:')
+        log.debug(sim_request.id)
 
         results_id = sim_request.results_id
         self.cache = Cache(self.cache_dir, results_id, namespace=sim_request.namespace)
@@ -67,14 +70,18 @@ class SimulationRunCacheHandler(RequestHandler):
         if not self.cache.exists():
             self.cache.create()
         empty = self.cache.is_empty()
-        if not empty:
-            # Check the number of trajectories in the request, default 1
-            n_traj = sim_request.kwargs.get('number_of_trajectories', 1)
+        # Check the number of trajectories in the request, default 1
+        n_traj = sim_request.kwargs.get('number_of_trajectories', 1)
+        if sim_request.force_run is True:
+            msg = f'{msg_0} | Force run simulation. Running {n_traj} new trajectories.'
+            log.info(msg)
+            self._run_cache(sim_request)
+        elif not empty:
             # Compare that to the number of cached trajectories
             trajectories_needed =  self.cache.n_traj_needed(n_traj)
             if trajectories_needed > 0:
                 sim_request.kwargs['number_of_trajectories'] = trajectories_needed
-                msg = f'{msg_0} | Partial self.. Running {trajectories_needed} new trajectories.'
+                msg = f'{msg_0} | Partial cache. Running {trajectories_needed} new trajectories.'
                 log.info(msg)
                 self._run_cache(sim_request)
             else:
@@ -85,7 +92,7 @@ class SimulationRunCacheHandler(RequestHandler):
                 sim_response = SimulationRunCacheResponse(SimStatus.READY, results_id = results_id, results = results_json)
                 self.write(sim_response.encode())
                 self.finish()
-        if empty:
+        elif empty:
             msg = f'{msg_0} | Results not cached. Running simulation.'
             log.info(msg)
             self._run_cache(sim_request)
@@ -114,7 +121,7 @@ class SimulationRunCacheHandler(RequestHandler):
         else:
             future = self._submit(sim_request, client)
             self._return_running(results_id, future.key)
-            IOLoop.current().run_in_executor(None, self._cache, results_id, future, client)
+            IOLoop.current().run_in_executor(None, self._cache, future, client)
 
     def _submit_parallel(self, sim_request, client: Client):
         '''
@@ -142,7 +149,7 @@ class SimulationRunCacheHandler(RequestHandler):
             kwargs['seed'] += kwargs['seed']
             future = client.submit(model.run, **kwargs)
             futures.append(future)
-        IOLoop.current().run_in_executor(None, self._cache_parallel, results_id, futures, client)
+        IOLoop.current().run_in_executor(None, self._cache_parallel, futures, client)
         self._return_running(results_id, results_id)
 
     def _submit_chunks(self, sim_request, client: Client):
@@ -169,8 +176,6 @@ class SimulationRunCacheHandler(RequestHandler):
         log.debug('_submit_chunks():')
         log.debug(traj_per_worker)
         log.debug(extra_traj)
-        # return
-        # traj_per_worker_list = []
         futures = []
         del kwargs['number_of_trajectories']
         kwargs['seed'] = int(sim_request.id, 16)
@@ -185,12 +190,12 @@ class SimulationRunCacheHandler(RequestHandler):
             future = client.submit(model.run, **kwargs)
             futures.append(future)
 
-        IOLoop.current().run_in_executor(None, self._cache_parallel, results_id, futures, client)
+        IOLoop.current().run_in_executor(None, self._cache_parallel, futures, client)
         self._return_running(results_id, results_id)
         
 
 
-    def _cache_parallel(self, results_id, futures, client: Client) -> None:
+    def _cache_parallel(self, futures, client: Client) -> None:
         '''
         :param results_id: Key to results.
         :type results_id: str
@@ -202,20 +207,16 @@ class SimulationRunCacheHandler(RequestHandler):
         :type client: distributed.Client
 
         '''
+        log.debug('_cache_parallel()...')
         results = client.gather(futures, asynchronous=False)
         results = sum(results)
-        log.debug('_cache_parallel():')
+        log.debug('results:')
         log.debug(results)
         client.close()
-        # return
-        # cache = Cache(self.cache_dir, results_id)
         self.cache.save(results)
         
-    def _cache(self, results_id, future, client) -> None:
+    def _cache(self, future, client) -> None:
         '''
-        :param results_id: Key to results.
-        :type results_id: str
-
         :param future: Future that completes to gillespy2.Results.
         :type future: distributed.Future
 
@@ -225,7 +226,6 @@ class SimulationRunCacheHandler(RequestHandler):
         '''
         results = future.result()
         client.close()
-        # cache = Cache(self.cache_dir, results_id)
         self.cache.save(results)
 
     def _submit(self, sim_request, client: Client):
@@ -239,12 +239,15 @@ class SimulationRunCacheHandler(RequestHandler):
         :returns: Future that completes to gillespy2.Results.
         :rtype: distributed.Future
         '''
+        log.debug('_submit()...')
         model = sim_request.model
         kwargs = sim_request.kwargs
 
         if "solver" in kwargs:
             from pydoc import locate
             kwargs["solver"] = locate(kwargs["solver"])
+        log.debug('kwargs.get("solver", None)')
+        log.debug(kwargs.get('solver', None))
         
         return client.submit(model.run, **kwargs, key=sim_request.id)
 
