@@ -20,9 +20,10 @@ gillespy2.remote.server.api
 import os
 import asyncio
 import subprocess
-from logging import DEBUG, INFO
+from logging import INFO
 from tornado.web import Application
-from gillespy2.remote.server.handlers.is_cached import IsCachedHandler
+from gillespy2.remote.server.handlers.number_of_trajectories import NumberOfTrajectoriesHandler
+from gillespy2.remote.server.handlers.number_of_workers import NumberOfWorkersHandler
 from gillespy2.remote.server.handlers.simulation_run_cache import SimulationRunCacheHandler
 from gillespy2.remote.server.handlers.sourceip import SourceIpHandler
 from gillespy2.remote.server.handlers.status import StatusHandler
@@ -32,22 +33,22 @@ log = init_logging(__name__)
 
 def _make_app(dask_host, dask_scheduler_port, cache):
     scheduler_address = f'{dask_host}:{dask_scheduler_port}'
-    args = {'scheduler_address': scheduler_address,
-            'cache_dir': cache}
+    scheduler_arg = {'scheduler_address': scheduler_address}
     cache_arg = {'cache_dir': cache}
+    args1 = scheduler_arg | cache_arg
     return Application([
         (r'/api/v3/simulation/gillespy2/run/cache',
          SimulationRunCacheHandler,
-         args),
+         args1),
         (r'/api/v3/simulation/gillespy2/status',
          StatusHandler,
-         args),
+         args1),
         (r'/api/v3/simulation/gillespy2/results',
          ResultsHandler,
          cache_arg),
-        (r'/api/v3/cache/gillespy2/(?P<results_id>.*?)/(?P<n_traj>[1-9]\d*?)/is_cached',
-            IsCachedHandler, {'cache_dir': cache}),
         (r'/api/v3/cloud/sourceip', SourceIpHandler),
+        (r'/api/v3/dask/number_of_workers', NumberOfWorkersHandler, scheduler_arg),
+        (r'/api/v3/cache/number_of_trajectories', NumberOfTrajectoriesHandler, cache_arg),
     ])
 
 async def start_api(
@@ -84,9 +85,7 @@ async def start_api(
     """
 
     set_global_log_level(logging_level)
-    # TODO clean up lock files here
 
-    # cache_path = os.path.abspath(cache_path)
     app = _make_app(dask_host, dask_scheduler_port, cache_path)
     app.listen(port)
     msg='''
