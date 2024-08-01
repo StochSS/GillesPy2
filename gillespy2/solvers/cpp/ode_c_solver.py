@@ -151,6 +151,9 @@ class ODECSolver(GillesPySolver, CSolver):
                 "init_pop": populations,
                 "parameters": parameter_values
             })
+        elif variables:
+            log.warning("'variables' argument ignored, because solver has variable=False.")
+
         if integrator_options is not None:
             integrator_options = ODECSolver.validate_integrator_options(integrator_options)
             args.update(integrator_options)

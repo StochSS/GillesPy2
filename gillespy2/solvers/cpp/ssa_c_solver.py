@@ -143,6 +143,8 @@ class SSACSolver(GillesPySolver, CSolver):
                 "init_pop": populations,
                 "parameters": parameter_values
             })
+        elif variables:
+            log.warning("'variables' argument ignored, because solver has variable=False.")
 
         seed = self._validate_seed(seed)
         if seed is not None:

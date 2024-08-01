@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import unittest
 import tempfile
 from gillespy2.core.gillespyError import DirectoryError, SimulationError
@@ -72,6 +73,49 @@ class TestVariableSolvers(unittest.TestCase):
         with self.assertRaises(SimulationError):
             for solver in self.solverlist:
                 results = self.model.run(solver=solver, variables={'foobar':0})
+
+    def test_non_variable_solver_ignored_variables_warnings(self):
+        """
+        Ensure that non-variable solvers emit warnings for ignored variables.
+        """
+        nonVarSolverList = [SSACSolver(self.model, variable=False),
+                            ODECSolver(self.model, variable=False),
+                            TauLeapingCSolver(self.model, variable=False),
+                            TauHybridCSolver(self.model, variable=False)]
+        for nonVarSolver in nonVarSolverList:
+            with self.subTest(msg=f"for non-variable {nonVarSolver.__class__.__name__}"):
+                with self.subTest(msg="when variables is specified"):
+                    self.model.run(solver=nonVarSolver, variables={'k1':1})
+                    self.assertLogs(level=logging.WARN)
+                    with self.subTest(msg="when variables is not specified"):
+                        self.model.run(solver=nonVarSolver)
+                        if hasattr(self, 'assertNoLogs'): # Python >= 3.10 only
+                            self.assertNoLogs(level=logging.WARN)
+                    with self.subTest(msg="when variables is {}"):
+                        self.model.run(solver=nonVarSolver, variables={})
+                        if hasattr(self, 'assertNoLogs'): # Python >= 3.10 only
+                            self.assertNoLogs(level=logging.WARN)
+
+    def test_variable_solver_ignored_variables_warnings(self):
+        """
+        Ensure that variable solvers do not emit warnings related to non-variable
+          solver variable ignoring.
+        """
+        for varSolver in self.solverlist:
+            with self.subTest(msg=f"for variable {varSolver}"):
+                with self.subTest(msg="when variables is specified"):
+                    self.model.run(solver=varSolver, variables={'k1':1})
+                    if hasattr(self, 'assertNoLogs'):  # Python >= 3.10 only
+                        self.assertNoLogs(level=logging.WARN)
+                with self.subTest(msg="when variables is not specified"):
+                    self.model.run(solver=varSolver)
+                    if hasattr(self, 'assertNoLogs'):  # Python >= 3.10 only
+                        self.assertNoLogs(level=logging.WARN)
+                with self.subTest(msg="when variables is {}"):
+                    self.model.run(solver=varSolver, variables={})
+                    if hasattr(self, 'assertNoLogs'):  # Python >= 3.10 only
+                        self.assertNoLogs(level=logging.WARN)
+
 
 
 if __name__ == '__main__':

@@ -19,7 +19,7 @@ from gillespy2.solvers.cpp.c_decoder import IterativeSimDecoder
 from gillespy2.solvers.utilities import solverutils as cutils
 from gillespy2.core import GillesPySolver, Model
 from gillespy2.core.gillespyError import *
-from gillespy2.core import Results 
+from gillespy2.core import Results, log
 
 from .c_solver import CSolver, SimulationReturnCode
 
@@ -67,6 +67,7 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
     def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
             resume=None, live_output: str = None, live_output_options: dict = {}, tau_tol=0.03, constant_tau_stepsize=None, **kwargs):
+
 
         """
         :param model: The model on which the solver will operate. (Deprecated)
@@ -172,6 +173,8 @@ class TauLeapingCSolver(GillesPySolver, CSolver):
                 "init_pop": populations,
                 "parameters": parameter_values
             })
+        elif variables:
+            log.warning("'variables' argument ignored, because solver has variable=False.")
 
         seed = self._validate_seed(seed)
         if seed is not None:
