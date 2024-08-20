@@ -65,8 +65,8 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         model.add_species([species])
         model.add_assignment_rule([rule])
         results = model.run()
-        self.assertEquals(results[species.name][0], 2) 
-        self.assertEquals(results[species.name][-1], 2)
+        self.assertEqual(results[species.name][0], 2) 
+        self.assertEqual(results[species.name][-1], 2)
         self.assertEqual(results[0].solver_name,'TauHybridSolver')
 
     def test_add_function_definition(self):
