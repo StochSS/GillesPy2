@@ -120,8 +120,8 @@ class TestResults(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir:
             result.to_csv(stamp = test_stamp, nametag = test_nametag, path=tempdir)
-            test_path = tempdir+"/"+test_nametag+test_stamp
-            assert os.path.isdir(test_path)
+            test_path = tempdir+"/"+test_nametag+test_stamp+".odf"
+            self.assertTrue(os.path.isdir(test_path))
 
     def test_to_csv_single_result_file_exists(self):
         test_data = {'time':[0]}

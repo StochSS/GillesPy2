@@ -283,7 +283,7 @@ class Results(UserList, Jsonify):
             return results
         raise ValueError("number_of_trajectories must be non-negative and non-zero")
 
-    def to_csv(self, path=".", nametag=None, stamp=None, postfix=".odf", verbose=False):
+    def to_csv(self, path=".", nametag=None, stamp=None, suffix=".odf", verbose=False):
         """
         Outputs the Results to one or more .csv files in a new directory.
 
@@ -311,7 +311,7 @@ class Results(UserList, Jsonify):
         else:
             identifier = nametag
 
-        directory = os.path.join(path, f"{identifier}-{stamp}{postfix}")
+        directory = os.path.join(path, f"{identifier}-{stamp}{suffix}")
         if verbose:
             print(f"Writing data to: {directory}")
         # multiple trajectories
