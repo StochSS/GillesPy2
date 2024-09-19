@@ -16,6 +16,7 @@
 
 import unittest
 import os
+import sys
 import tempfile
 from gillespy2.core import Model
 from gillespy2.core.results import Results, Trajectory
@@ -131,8 +132,9 @@ class TestResults(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir:
             result.to_csv(stamp = test_stamp, nametag = test_nametag, path=tempdir)
-            test_path = tempdir+"/"+test_nametag+'-'+test_stamp+"/"+test_nametag+"0.csv"
-            self.assertTrue( os.path.isfile(test_path))
+            test_path = tempdir+"/"+test_nametag+'-'+test_stamp+".odf/"+test_nametag+"0.csv"
+            sys.stderr.write('test_path='+test_path+"\n\n")
+            self.assertTrue( os.path.isfile(test_path), msg=f"test_path={test_path} is not a file. tempdir={tempdir} os.listdir()={os.listdir(tempdir)}")
 
     def test_to_csv_single_result_no_stamp(self):
         test_data = {'time':[0]}
