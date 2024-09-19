@@ -22,13 +22,13 @@
 # =============================================================================
 
 
-__version__      = '1.8.2'
+__version__      = '1.8.3'
 
 __title__        = 'GillesPy2'
 __description__  = 'Python interface for Gillespie-style biochemical simulations'
 __url__          = 'https://github.com/StochSS/GillesPy2'
 __download_url__ = 'https://pypi.org/project/gillespy2/#files'
 __author__       = 'See AUTHORS'
-__email__        = 'bdrawert@unca.edu'
+__email__        = 'briandrawert@gmail.com'
 __license__      = 'GPL'
-__copyright__    = 'Copyright (C) 2017-2023'
+__copyright__    = 'Copyright (C) 2017-2024'
