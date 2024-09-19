@@ -79,7 +79,7 @@ class TestJsonModels(unittest.TestCase):
 
             results_from = Results.from_json(results.to_json())
 
-            self.assertEquals(results.to_json(), results_from.to_json())
+            self.assertEqual(results.to_json(), results_from.to_json())
 
     def test_equality_of_named_results(self):
         """
@@ -178,7 +178,7 @@ class TestJsonModels(unittest.TestCase):
             model_2 = Model.from_json(model_1_json)
 
             # Assert that the anonymized model_1 and the new model_2 are identical.
-            self.assertEquals(
+            self.assertEqual(
                 model_1.to_anon().to_json(),
                 model_2.to_json()
             )
@@ -187,7 +187,7 @@ class TestJsonModels(unittest.TestCase):
             model_2 = model_2.to_named()
 
             # Assert that model_1 and model_2 are still the same.
-            self.assertEquals(
+            self.assertEqual(
                 model_1.to_json(),
                 model_2.to_json()
             )
@@ -205,7 +205,7 @@ class TestJsonModels(unittest.TestCase):
         model_with_whitespace.add_species([X, Y])
 
         # Up to this point the JSON hash of the two models should be the same.
-        self.assertEquals(model_no_whitespace.get_json_hash(), model_with_whitespace.get_json_hash())
+        self.assertEqual(model_no_whitespace.get_json_hash(), model_with_whitespace.get_json_hash())
 
         # Add a custom reaction to both models, differing the amount of whitespace in the 
         # propensity functions.
