@@ -103,7 +103,7 @@
             
   <h1>Source code for gillespy2.solvers.numpy.tau_hybrid_solver</h1><div class="highlight"><pre>
 <span></span><span class="c1"># GillesPy2 is a modeling toolkit for biochemical simulation.</span>
-<span class="c1"># Copyright (C) 2019-2023 GillesPy2 developers.</span>
+<span class="c1"># Copyright (C) 2019-2024 GillesPy2 developers.</span>
 
 <span class="c1"># This program is free software: you can redistribute it and/or modify</span>
 <span class="c1"># it under the terms of the GNU General Public License as published by</span>
@@ -162,7 +162,7 @@
 <span class="n">eval_globals</span><span class="p">[</span><span class="s1">&#39;xor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">__xor</span>
 
 
-<div class="viewcode-block" id="TauHybridSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.TauHybridSolver">[docs]</a><span class="k">class</span> <span class="nc">TauHybridSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
+<div class="viewcode-block" id="TauHybridSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver">[docs]</a><span class="k">class</span> <span class="nc">TauHybridSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This solver uses a root-finding interpretation of the direct SSA method,</span>
 <span class="sd">    along with ODE solvers to simulate ODE and Stochastic systems</span>
@@ -1069,7 +1069,7 @@
             <span class="n">y_map</span><span class="p">[</span><span class="n">event</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">compiled_reactions</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">y0</span><span class="p">,</span> <span class="n">y_map</span>
 
-<div class="viewcode-block" id="TauHybridSolver.get_solver_settings"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.TauHybridSolver.get_solver_settings">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="TauHybridSolver.get_solver_settings"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver.get_solver_settings">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_solver_settings</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a list of arguments supported by tau_hybrid_solver.run.</span>
@@ -1079,7 +1079,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">,</span> <span class="s1">&#39;increment&#39;</span><span class="p">,</span> <span class="s1">&#39;seed&#39;</span><span class="p">,</span> <span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;profile&#39;</span><span class="p">,</span> <span class="s1">&#39;tau_tol&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;event_sensitivity&#39;</span><span class="p">,</span> <span class="s1">&#39;integrator_options&#39;</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="TauHybridSolver.get_supported_features"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.TauHybridSolver.get_supported_features">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="TauHybridSolver.get_supported_features"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver.get_supported_features">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">get_supported_features</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="n">Event</span><span class="p">,</span>
@@ -1088,7 +1088,7 @@
             <span class="n">FunctionDefinition</span><span class="p">,</span>
         <span class="p">}</span></div>
 
-<div class="viewcode-block" id="TauHybridSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.TauHybridSolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="TauHybridSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">event_sensitivity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span><span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span>
             <span class="n">live_output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live_output_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

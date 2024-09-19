@@ -1,5 +1,5 @@
 # GillesPy2 is a modeling toolkit for biochemical simulation.
-# Copyright (C) 2019-2023 GillesPy2 developers.
+# Copyright (C) 2019-2024 GillesPy2 developers.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -1664,8 +1664,8 @@ class StochMLDocument():
             doc = eTree.tostring(self.document)
             xmldoc = xml.dom.minidom.parseString(doc)
             ugly_xml = xmldoc.toprettyxml(indent='  ')
-            text_re = re.compile(">\n\s+([^<>\s].*?)\n\s+</", re.DOTALL)
-            pretty_xml = text_re.sub(">\g<1></", ugly_xml)
+            text_re = re.compile(r">\n\s+([^<>\s].*?)\n\s+</", re.DOTALL)
+            pretty_xml = text_re.sub(r">\g<1></", ugly_xml)
             return pretty_xml
 
     def __species_to_element(self, species):

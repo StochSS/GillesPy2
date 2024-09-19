@@ -1,5 +1,5 @@
 # GillesPy2 is a modeling toolkit for biochemical simulation.
-# Copyright (C) 2019-2023 GillesPy2 developers.
+# Copyright (C) 2019-2024 GillesPy2 developers.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -151,6 +151,9 @@ class ODECSolver(GillesPySolver, CSolver):
                 "init_pop": populations,
                 "parameters": parameter_values
             })
+        elif variables:
+            log.warning("'variables' argument ignored, because solver has variable=False.")
+
         if integrator_options is not None:
             integrator_options = ODECSolver.validate_integrator_options(integrator_options)
             args.update(integrator_options)

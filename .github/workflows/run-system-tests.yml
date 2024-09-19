@@ -18,7 +18,7 @@ jobs:
     - name: Install Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.7'
+        python-version: '3.12'
 
     # see: https://github.com/actions/virtual-environments/pull/5729
     # GHA recently upgrading MinGW to v11.20, which seems to break things in that environment.

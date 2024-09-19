@@ -1,5 +1,5 @@
 # GillesPy2 is a modeling toolkit for biochemical simulation.
-# Copyright (C) 2019-2023 GillesPy2 developers.
+# Copyright (C) 2019-2024 GillesPy2 developers.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -147,14 +147,14 @@ class TestAllSolvers(unittest.TestCase):
         for solver in self.solvers:
             self.assertTrue(isinstance(self.labeled_results[solver.name], Results))
             self.assertTrue(isinstance(self.labeled_results[solver.name]['Sp'], np.ndarray))
-            self.assertTrue(isinstance(self.labeled_results[solver.name]['Sp'][0], np.float))
+            self.assertTrue(isinstance(self.labeled_results[solver.name]['Sp'][0], float))
 
             self.assertTrue(isinstance(self.labeled_results[solver.name][0], Trajectory))
 
             self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name], Results))
             self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0], Trajectory))
             self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0]['Sp'], np.ndarray))
-            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0]['Sp'][0], np.float))
+            self.assertTrue(isinstance(self.labeled_results_more_trajectories[solver.name][0]['Sp'][0], float))
 
     def test_sbml_feature_validation(self):
         def create_test_model(parameter_values=None):
