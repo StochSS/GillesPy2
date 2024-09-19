@@ -1664,8 +1664,8 @@ class StochMLDocument():
             doc = eTree.tostring(self.document)
             xmldoc = xml.dom.minidom.parseString(doc)
             ugly_xml = xmldoc.toprettyxml(indent='  ')
-            text_re = re.compile(">\n\s+([^<>\s].*?)\n\s+</", re.DOTALL)
-            pretty_xml = text_re.sub(">\g<1></", ugly_xml)
+            text_re = re.compile(r">\n\s+([^<>\s].*?)\n\s+</", re.DOTALL)
+            pretty_xml = text_re.sub(r">\g<1></", ugly_xml)
             return pretty_xml
 
     def __species_to_element(self, species):
