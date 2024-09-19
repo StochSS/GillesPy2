@@ -59,7 +59,7 @@ class CLESolver(GillesPySolver):
         self.is_instantiated = True
 
     def __get_reactions(self, step, curr_state, curr_time, save_time, propensities, reactions):
-        """
+        r"""
         Helper Function to get reactions fired from t to t+tau.  
         
         In the equation:
