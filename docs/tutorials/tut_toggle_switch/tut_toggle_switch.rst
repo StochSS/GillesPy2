@@ -8,7 +8,7 @@ First, in a Python script that uses GillesPy2 to perform model simulation, we be
 .. code-block:: python
 
  import gillespy2
- 
+
 
 Next, we define a model. This is a model based on a publication by Gardner et al. in Nature, 1999, and represents a genetic toggle switch in Escherichia coli.  In GillesPy2, a model is expressed as an object having the parent class ``Model``.  Components of the model, such as the reactions, molecular species, and characteristics such as the time span for simulation, are all defined within the subclass definition.  The following Python code represents our model using GillesPy2's facility:
 
@@ -77,7 +77,7 @@ And here is a plot of the deterministic simulation results:
 
 .. code-block:: python
 
- d_results.plot(title="Stochastic Switch")
+ d_results.plot(title="Deterministic Switch")
 
 
 .. image:: ode.png
