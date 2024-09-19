@@ -1,5 +1,5 @@
 # GillesPy2 is a modeling toolkit for biochemical simulation.
-# Copyright (C) 2019-2023 GillesPy2 developers.
+# Copyright (C) 2019-2024 GillesPy2 developers.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +16,7 @@
 
 import unittest
 import os
+import sys
 import tempfile
 from gillespy2.core import Model
 from gillespy2.core.results import Results, Trajectory
@@ -109,8 +110,8 @@ class TestResults(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir:
             result.to_csv(stamp = test_stamp, nametag = test_nametag, path=tempdir)
-            test_path = tempdir+"/"+test_nametag+test_stamp
-            assert not os.path.isdir(test_path)
+            test_path = tempdir+"/"+test_nametag+'-'+test_stamp
+            self.assertFalse(os.path.isdir(test_path))
             
     def test_to_csv_single_result_directory_exists(self):
         test_data = {'time':[0]}
@@ -120,8 +121,8 @@ class TestResults(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir:
             result.to_csv(stamp = test_stamp, nametag = test_nametag, path=tempdir)
-            test_path = tempdir+"/"+test_nametag+test_stamp
-            assert os.path.isdir(test_path)
+            test_path = tempdir+"/"+test_nametag+'-'+test_stamp+".odf"
+            self.assertTrue(os.path.isdir(test_path))
 
     def test_to_csv_single_result_file_exists(self):
         test_data = {'time':[0]}
@@ -131,8 +132,9 @@ class TestResults(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir:
             result.to_csv(stamp = test_stamp, nametag = test_nametag, path=tempdir)
-            test_path = tempdir+"/"+test_nametag+test_stamp+"/"+test_nametag+"0.csv"
-            assert os.path.isfile(test_path)
+            test_path = tempdir+"/"+test_nametag+'-'+test_stamp+".odf/"+test_nametag+"0.csv"
+            sys.stderr.write('test_path='+test_path+"\n\n")
+            self.assertTrue( os.path.isfile(test_path), msg=f"test_path={test_path} is not a file. tempdir={tempdir} os.listdir()={os.listdir(tempdir)}")
 
     def test_to_csv_single_result_no_stamp(self):
         test_data = {'time':[0]}
@@ -141,7 +143,7 @@ class TestResults(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir:
             result.to_csv(nametag=test_nametag, path=tempdir)
-            assert len(os.listdir(tempdir)) != 0
+            self.assertNotEqual(len(os.listdir(tempdir)), 0)
 
     def test_to_csv_single_result_no_nametag(self):
         test_model = Model('test_model')
@@ -149,7 +151,7 @@ class TestResults(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir:
             result.to_csv(nametag=test_nametag, path=tempdir)
-            assert len(os.listdir(tempdir)) != 0
+            self.assertNotEqual(len(os.listdir(tempdir)), 0)
 
     def test_to_csv_single_result_no_nametag(self):
         test_model = Model('test_model')
@@ -160,7 +162,7 @@ class TestResults(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir:
             result.to_csv(stamp=test_stamp, path=tempdir)
-            assert len(os.listdir(tempdir)) != 0
+            self.assertNotEqual(len(os.listdir(tempdir)), 0)
 
     def test_to_csv_single_result_no_path(self):
         test_data = Trajectory({'time':[0]},model=Model('test_model'),solver_name='test_solver_name')

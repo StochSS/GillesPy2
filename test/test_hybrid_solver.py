@@ -1,5 +1,5 @@
 # GillesPy2 is a modeling toolkit for biochemical simulation.
-# Copyright (C) 2019-2023 GillesPy2 developers.
+# Copyright (C) 2019-2024 GillesPy2 developers.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -65,8 +65,8 @@ class TestBasicTauHybridSolver(unittest.TestCase):
         model.add_species([species])
         model.add_assignment_rule([rule])
         results = model.run()
-        self.assertEquals(results[species.name][0], 2) 
-        self.assertEquals(results[species.name][-1], 2)
+        self.assertEqual(results[species.name][0], 2) 
+        self.assertEqual(results[species.name][-1], 2)
         self.assertEqual(results[0].solver_name,'TauHybridSolver')
 
     def test_add_function_definition(self):
