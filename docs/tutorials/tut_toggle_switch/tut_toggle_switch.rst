@@ -42,7 +42,7 @@ Next, we define a model. This is a model based on a publication by Gardner et al
                    rate=mu)
      model.add_reaction([cu, cv, du, dv])
 
-     tspan = gillespy2.TimeSpan.linspace(0, 100, 101)
+     tspan = gillespy2.TimeSpan.linspace(t=100, num_points=101)
      model.timespan(tspan)
      return model
 
