@@ -1,20 +1,17 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>gillespy2.solvers.numpy.tau_hybrid_solver &#8212; GillesPy2 1.8.3 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css" />
-    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-    <script src="../../../../_static/jquery.js"></script>
-    <script src="../../../../_static/underscore.js"></script>
-    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../../../../_static/doctools.js"></script>
-    <script src="../../../../_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/basic.css?v=686e5160" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/alabaster.css?v=5647dbb4" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/css/gillespy2_alabaster_customizations.css?v=b3beab4e" />
+    <script src="../../../../_static/documentation_options.js?v=82e6e318"></script>
+    <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -22,17 +19,18 @@
   
     <link rel="apple-touch-icon" href="../../../../_static/img/gillespy2-logo.svg" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   <div class="document">
     
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <p class="logo">
   <a href="../../../../index.html">
-    <img class="logo" src="../../../../_static/img/gillespy2-logo.svg" alt="Logo"/>
+    <img class="logo" src="../../../../_static/img/gillespy2-logo.svg" alt="Logo" />
     
   </a>
 </p>
@@ -51,7 +49,16 @@
 
 
 
-<h3>Navigation</h3>
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
 <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../getting_started/installation/installation.html">Installation</a></li>
@@ -75,16 +82,6 @@
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
-    <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
-      <input type="submit" value="Go" />
-    </form>
-    </div>
-</div>
-<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -118,22 +115,22 @@
 <span class="c1"># You should have received a copy of the GNU General Public License</span>
 <span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">random</span><span class="o">,</span> <span class="nn">math</span><span class="o">,</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">ode</span><span class="p">,</span> <span class="n">LSODA</span>
-<span class="kn">import</span> <span class="nn">heapq</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">threading</span>
-<span class="kn">import</span> <span class="nn">gillespy2</span>
-<span class="kn">from</span> <span class="nn">gillespy2.solvers.utilities</span> <span class="kn">import</span> <span class="n">Tau</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core</span> <span class="kn">import</span> <span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">Event</span><span class="p">,</span> <span class="n">RateRule</span><span class="p">,</span> <span class="n">AssignmentRule</span><span class="p">,</span> <span class="n">FunctionDefinition</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.gillespyError</span> <span class="kn">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">gillespy2.core.results</span> <span class="kn">import</span> <span class="n">Results</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">random</span><span class="o">,</span><span class="w"> </span><span class="nn">math</span><span class="o">,</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.integrate</span><span class="w"> </span><span class="kn">import</span> <span class="n">ode</span><span class="p">,</span> <span class="n">LSODA</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">heapq</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">gillespy2</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gillespy2.solvers.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tau</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gillespy2.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">GillesPySolver</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">Event</span><span class="p">,</span> <span class="n">RateRule</span><span class="p">,</span> <span class="n">AssignmentRule</span><span class="p">,</span> <span class="n">FunctionDefinition</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gillespy2.core.gillespyError</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">gillespy2.core.results</span><span class="w"> </span><span class="kn">import</span> <span class="n">Results</span>
 
 <span class="n">eval_globals</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="vm">__dict__</span>
 
-<span class="k">def</span> <span class="nf">__piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">__piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="c1"># Eval entry for piecewise functions</span>
     <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
     <span class="n">solution</span> <span class="o">=</span> <span class="kc">None</span>
@@ -148,10 +145,10 @@
     <span class="k">return</span> <span class="n">solution</span>
 
 
-<span class="k">def</span> <span class="nf">__xor</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">__xor</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="c1"># Eval entry for MathML xor function</span>
-    <span class="kn">from</span> <span class="nn">operator</span> <span class="kn">import</span> <span class="n">ixor</span>
-    <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">ixor</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">reduce</span>
     <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="n">ixor</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
 
@@ -162,7 +159,9 @@
 <span class="n">eval_globals</span><span class="p">[</span><span class="s1">&#39;xor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">__xor</span>
 
 
-<div class="viewcode-block" id="TauHybridSolver"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver">[docs]</a><span class="k">class</span> <span class="nc">TauHybridSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
+<div class="viewcode-block" id="TauHybridSolver">
+<a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TauHybridSolver</span><span class="p">(</span><span class="n">GillesPySolver</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This solver uses a root-finding interpretation of the direct SSA method,</span>
 <span class="sd">    along with ODE solvers to simulate ODE and Stochastic systems</span>
@@ -177,7 +176,7 @@
     <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">stop_event</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">profile_reactions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">constant_tau_stepsize</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">profile_reactions</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">constant_tau_stepsize</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="s2">&quot;A model is required to run the simulation.&quot;</span><span class="p">)</span>
 
@@ -209,7 +208,7 @@
 
 
 
-    <span class="k">def</span> <span class="nf">__save_state_to_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_index</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> 
+    <span class="k">def</span><span class="w"> </span><span class="nf">__save_state_to_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_index</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> 
                                 <span class="n">trajectory</span><span class="p">,</span> <span class="n">save_times</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper function to save the curr_state to the trajectory output</span>
@@ -242,7 +241,7 @@
         <span class="k">return</span> <span class="n">save_index</span>
 
 
-    <span class="k">def</span> <span class="nf">__toggle_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_compiled</span><span class="p">,</span> <span class="n">deterministic_reactions</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__toggle_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">all_compiled</span><span class="p">,</span> <span class="n">deterministic_reactions</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">,</span>
                             <span class="n">curr_state</span><span class="p">,</span> <span class="n">det_spec</span><span class="p">,</span> <span class="n">rr_sets</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method which is used to convert reaction channels into</span>
@@ -282,7 +281,7 @@
                                             <span class="n">dependencies</span><span class="p">,</span> <span class="n">rr_sets</span><span class="p">,</span> <span class="n">rate_rules</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">tmp</span>
 
-    <span class="k">def</span> <span class="nf">__create_diff_eqs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comb</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">,</span> <span class="n">rr_sets</span><span class="p">,</span> <span class="n">rate_rules</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__create_diff_eqs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comb</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">,</span> <span class="n">rr_sets</span><span class="p">,</span> <span class="n">rate_rules</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method used to convert stochastic reaction descriptions into</span>
 <span class="sd">        differential equations, used dynamically throught the simulation.</span>
@@ -329,7 +328,7 @@
         <span class="n">rr_sets</span><span class="p">[</span><span class="n">comb</span><span class="p">]</span> <span class="o">=</span> <span class="n">rate_rules</span> <span class="c1"># save values</span>
         <span class="k">return</span> <span class="n">output_rules</span>
 
-    <span class="k">def</span> <span class="nf">__flag_det_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">det_spec</span><span class="p">,</span> <span class="n">det_rxn</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__flag_det_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">det_spec</span><span class="p">,</span> <span class="n">det_rxn</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method used to flag reactions that can be processed</span>
 <span class="sd">        deterministically without exceeding the user-supplied tolerance.</span>
@@ -359,7 +358,7 @@
         <span class="n">deterministic_reactions</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">deterministic_reactions</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">deterministic_reactions</span>
 
-    <span class="k">def</span> <span class="nf">__calculate_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">tau_step</span><span class="p">,</span> <span class="n">det_spec</span><span class="p">,</span> <span class="n">cv_history</span><span class="o">=</span><span class="p">{}):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__calculate_statistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">tau_step</span><span class="p">,</span> <span class="n">det_spec</span><span class="p">,</span> <span class="n">cv_history</span><span class="o">=</span><span class="p">{}):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculates Mean, Standard Deviation, and Coefficient of Variance for each</span>
 <span class="sd">        dynamic species, then set if species can be represented determistically</span>
@@ -422,7 +421,7 @@
         <span class="k">return</span> <span class="n">mn</span><span class="p">,</span> <span class="n">sd</span><span class="p">,</span> <span class="n">CV</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">__f</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">reactions</span><span class="p">,</span> <span class="n">rate_rules</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__f</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">reactions</span><span class="p">,</span> <span class="n">rate_rules</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span>
             <span class="n">y_map</span><span class="p">,</span> <span class="n">compiled_reactions</span><span class="p">,</span> <span class="n">active_rr</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">assignment_rules</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluate the propensities for the reactions and the RHS of the Reactions and RateRules.</span>
@@ -451,7 +450,7 @@
                 <span class="n">state_change</span><span class="p">[</span><span class="n">y_map</span><span class="p">[</span><span class="n">event</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">state_change</span>
 
-    <span class="k">def</span> <span class="nf">__find_event_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sol</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">depth</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__find_event_time</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sol</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">depth</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method providing binary search implementation for locating</span>
 <span class="sd">        precise event times.</span>
@@ -471,7 +470,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__find_event_time</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span> <span class="n">dense_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                                           <span class="n">dense_range</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">index</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__detect_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_sensitivity</span><span class="p">,</span> <span class="n">sol</span><span class="p">,</span> <span class="n">delayed_events</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__detect_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_sensitivity</span><span class="p">,</span> <span class="n">sol</span><span class="p">,</span> <span class="n">delayed_events</span><span class="p">,</span>
                         <span class="n">trigger_states</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to locate precise time of event firing.  This method</span>
@@ -508,7 +507,7 @@
                     <span class="k">break</span>
         <span class="k">return</span> <span class="n">event_times</span>
 
-    <span class="k">def</span> <span class="nf">__get_next_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_times</span><span class="p">,</span> <span class="n">reaction_times</span><span class="p">,</span> <span class="n">delayed_events</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__get_next_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_times</span><span class="p">,</span> <span class="n">reaction_times</span><span class="p">,</span> <span class="n">delayed_events</span><span class="p">,</span>
                         <span class="n">sim_end</span><span class="p">,</span> <span class="n">next_tau</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method to determine the next action to take during simulation,</span>
@@ -535,7 +534,7 @@
                         <span class="n">next_delayed_event</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">next_step</span><span class="p">[</span><span class="n">curr_time</span><span class="p">],</span> <span class="n">curr_time</span>
 
-    <span class="k">def</span> <span class="nf">__process_queued_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_queue</span><span class="p">,</span> <span class="n">trigger_states</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__process_queued_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_queue</span><span class="p">,</span> <span class="n">trigger_states</span><span class="p">,</span>
                                 <span class="n">curr_state</span><span class="p">,</span> <span class="n">det_spec</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method which processes the events queue. Method is primarily for</span>
@@ -562,7 +561,7 @@
 
         <span class="k">return</span> <span class="n">events_processed</span>
 
-    <span class="k">def</span> <span class="nf">__handle_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">event_queue</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__handle_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">event_queue</span><span class="p">,</span>
                        <span class="n">trigger_states</span><span class="p">,</span> <span class="n">delayed_events</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method providing logic for updating states based on assignments.</span>
@@ -582,7 +581,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">trigger_states</span><span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">curr_state</span>
 
-    <span class="k">def</span> <span class="nf">__check_t0_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_state</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__check_t0_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_state</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method for firing events who reach a trigger condition at start</span>
 <span class="sd">        of simulation, time == 0.</span>
@@ -603,7 +602,7 @@
                         <span class="n">t0_delayed_events</span><span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">execution_time</span>
         <span class="k">return</span> <span class="n">t0_delayed_events</span><span class="p">,</span> <span class="n">species_modified_by_events</span>
 
-    <span class="k">def</span> <span class="nf">__update_stochastic_rxn_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">tau_step</span><span class="p">,</span> <span class="n">compiled_reactions</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">only_update</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__update_stochastic_rxn_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">propensities</span><span class="p">,</span> <span class="n">tau_step</span><span class="p">,</span> <span class="n">compiled_reactions</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">only_update</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper method for updating the state of stochastic reactions.</span>
 
@@ -633,7 +632,7 @@
                     <span class="n">curr_state</span><span class="p">[</span><span class="n">product</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span><span class="o">.</span><span class="n">products</span><span class="p">[</span><span class="n">product</span><span class="p">]</span> <span class="o">*</span> <span class="n">rxn_count</span><span class="p">[</span><span class="n">rxn</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">species_modified</span><span class="p">,</span> <span class="n">rxn_count</span>
 
-    <span class="k">def</span> <span class="nf">__integrate_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integrator_options</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__integrate_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integrator_options</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span>
                     <span class="n">propensities</span><span class="p">,</span> <span class="n">y_map</span><span class="p">,</span> <span class="n">compiled_reactions</span><span class="p">,</span>
                     <span class="n">active_rr</span><span class="p">,</span> <span class="n">event_queue</span><span class="p">,</span>
                     <span class="n">delayed_events</span><span class="p">,</span> <span class="n">trigger_states</span><span class="p">,</span>
@@ -664,7 +663,7 @@
 
 
 
-    <span class="k">def</span> <span class="nf">__integrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integrator_options</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__integrate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integrator_options</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span>
                     <span class="n">propensities</span><span class="p">,</span> <span class="n">y_map</span><span class="p">,</span> <span class="n">compiled_reactions</span><span class="p">,</span>
                     <span class="n">active_rr</span><span class="p">,</span> <span class="n">event_queue</span><span class="p">,</span>
                     <span class="n">delayed_events</span><span class="p">,</span> <span class="n">trigger_states</span><span class="p">,</span>
@@ -691,7 +690,7 @@
                             <span class="n">propensities</span><span class="p">,</span> <span class="n">y_map</span><span class="p">,</span> <span class="n">compiled_reactions</span><span class="p">,</span> <span class="n">active_rr</span><span class="p">,</span> <span class="n">event_queue</span><span class="p">,</span>
                             <span class="n">delayed_events</span><span class="p">,</span> <span class="n">trigger_states</span><span class="p">,</span> <span class="n">event_sensitivity</span><span class="p">,</span> <span class="n">tau_step</span><span class="p">)</span>
 
-        <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
         <span class="n">events</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">listOfEvents</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
         <span class="n">dense_output</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">int_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">curr_state</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">listOfSpecies</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">listOfReactions</span><span class="p">,</span>
@@ -789,14 +788,14 @@
         <span class="k">return</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">actual_tau_step</span>
 
 
-    <span class="k">def</span> <span class="nf">__simulate_negative_state_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__simulate_negative_state_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">):</span>
             <span class="c1"># check each species to see if they are negative</span>
             <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">non_negative_species</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">curr_state</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="n">SimulationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Negative State detected at begining of step.&quot;</span> \
                     <span class="s2">&quot; Species involved in reactions can not be negative.&quot;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__simulate_invalid_state_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_modified</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">compiled_reactions</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__simulate_invalid_state_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_modified</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">compiled_reactions</span><span class="p">):</span>
         <span class="n">invalid_state</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">err_message</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
         <span class="c1"># check each species to see if they are negative</span>
@@ -806,7 +805,7 @@
                 <span class="n">err_message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2">&#39; has negative state &#39;</span><span class="si">{</span><span class="n">curr_state</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">invalid_state</span><span class="p">,</span> <span class="n">err_message</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integrator_options</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integrator_options</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span>
                    <span class="n">propensities</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">compiled_reactions</span><span class="p">,</span>
                    <span class="n">active_rr</span><span class="p">,</span> <span class="n">y_map</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">,</span> <span class="n">save_times</span><span class="p">,</span> <span class="n">save_index</span><span class="p">,</span>
                    <span class="n">delayed_events</span><span class="p">,</span> <span class="n">trigger_states</span><span class="p">,</span> <span class="n">event_sensitivity</span><span class="p">,</span>
@@ -965,7 +964,7 @@
 
         <span class="k">return</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">save_times</span><span class="p">,</span> <span class="n">save_index</span>
 
-    <span class="k">def</span> <span class="nf">__set_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__set_seed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="p">):</span>
         <span class="c1"># Set seed if supplied</span>
         <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">seed</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
@@ -975,7 +974,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">ModelError</span><span class="p">(</span><span class="s1">&#39;seed must be a positive integer&#39;</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__set_recommended_ode_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integrator_options</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__set_recommended_ode_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integrator_options</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set some ODE solver defaults.  These values are chosen based on the</span>
 <span class="sd">        precision required to successfully complete the SBML Test suite.</span>
@@ -988,7 +987,7 @@
         <span class="k">if</span> <span class="s1">&#39;max_step&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">integrator_options</span><span class="p">:</span>
             <span class="n">integrator_options</span><span class="p">[</span><span class="s1">&#39;max_step&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.25</span>
 
-    <span class="k">def</span> <span class="nf">__compile_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__compile_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compile all run-time evaluables to enhance performance.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1010,7 +1009,7 @@
 
         <span class="k">return</span> <span class="n">compiled_reactions</span><span class="p">,</span> <span class="n">compiled_rate_rules</span><span class="p">,</span> <span class="n">compiled_inactive_reactions</span><span class="p">,</span> <span class="n">compiled_propensities</span>
 
-    <span class="k">def</span> <span class="nf">__initialize_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">debug</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__initialize_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">debug</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize curr_state for each trajectory.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1044,7 +1043,7 @@
                 <span class="k">continue</span>
             <span class="n">curr_state</span><span class="p">[</span><span class="n">ar</span><span class="o">.</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="n">ar</span><span class="o">.</span><span class="n">formula</span>
 
-    <span class="k">def</span> <span class="nf">__map_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">compiled_reactions</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__map_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">compiled_reactions</span><span class="p">,</span> <span class="n">events</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Creates the start state vector for integration and provides a</span>
 <span class="sd">        dictionary map to it&#39;s elements.</span>
@@ -1069,8 +1068,10 @@
             <span class="n">y_map</span><span class="p">[</span><span class="n">event</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">compiled_reactions</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">y0</span><span class="p">,</span> <span class="n">y_map</span>
 
-<div class="viewcode-block" id="TauHybridSolver.get_solver_settings"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver.get_solver_settings">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_solver_settings</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+<div class="viewcode-block" id="TauHybridSolver.get_solver_settings">
+<a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver.get_solver_settings">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_solver_settings</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a list of arguments supported by tau_hybrid_solver.run.</span>
 <span class="sd">        :returns: Tuple of strings, denoting all keyword argument for this solvers run() method.</span>
@@ -1079,8 +1080,11 @@
         <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">,</span> <span class="s1">&#39;number_of_trajectories&#39;</span><span class="p">,</span> <span class="s1">&#39;increment&#39;</span><span class="p">,</span> <span class="s1">&#39;seed&#39;</span><span class="p">,</span> <span class="s1">&#39;debug&#39;</span><span class="p">,</span> <span class="s1">&#39;profile&#39;</span><span class="p">,</span> <span class="s1">&#39;tau_tol&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;event_sensitivity&#39;</span><span class="p">,</span> <span class="s1">&#39;integrator_options&#39;</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="TauHybridSolver.get_supported_features"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver.get_supported_features">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_supported_features</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TauHybridSolver.get_supported_features">
+<a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver.get_supported_features">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_supported_features</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="n">Event</span><span class="p">,</span>
             <span class="n">RateRule</span><span class="p">,</span>
@@ -1088,7 +1092,10 @@
             <span class="n">FunctionDefinition</span><span class="p">,</span>
         <span class="p">}</span></div>
 
-<div class="viewcode-block" id="TauHybridSolver.run"><a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="TauHybridSolver.run">
+<a class="viewcode-back" href="../../../../classes/gillespy2.solvers.numpy.html#gillespy2.solvers.numpy.tau_hybrid_solver.TauHybridSolver.run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">event_sensitivity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span><span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span>
             <span class="n">live_output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">live_output_options</span><span class="o">=</span><span class="p">{},</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1144,7 +1151,7 @@
 <span class="sd">        :returns: A result object containing the results of the simulation.</span>
 <span class="sd">        :rtype: gillespy2.Results</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">gillespy2</span> <span class="kn">import</span> <span class="n">log</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">gillespy2</span><span class="w"> </span><span class="kn">import</span> <span class="n">log</span>
 
         <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Post deprecation block</span>
@@ -1258,7 +1265,7 @@
             <span class="k">if</span> <span class="n">live_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">live_output_options</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">live_output</span>
 
-                <span class="kn">import</span> <span class="nn">gillespy2.core.liveGraphing</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">gillespy2.core.liveGraphing</span>
                 <span class="n">gillespy2</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">liveGraphing</span><span class="o">.</span><span class="n">valid_graph_params</span><span class="p">(</span><span class="n">live_output_options</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">live_output_options</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;graph&quot;</span><span class="p">:</span>
@@ -1290,7 +1297,8 @@
 
         <span class="k">return</span> <span class="n">Results</span><span class="o">.</span><span class="n">build_from_solver_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">live_output_options</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">___run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">initial_state</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">___run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">initial_state</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
                <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">event_sensitivity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
                <span class="n">integrator_options</span><span class="o">=</span><span class="p">{},</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -1304,7 +1312,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">return</span> <span class="p">[],</span> <span class="o">-</span><span class="mi">1</span>
 
-    <span class="k">def</span> <span class="nf">__run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">initial_state</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">curr_state</span><span class="p">,</span> <span class="n">curr_time</span><span class="p">,</span> <span class="n">timeline</span><span class="p">,</span> <span class="n">trajectory_base</span><span class="p">,</span> <span class="n">initial_state</span><span class="p">,</span> <span class="n">live_grapher</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
               <span class="n">number_of_trajectories</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">increment</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">debug</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">profile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
               <span class="n">tau_tol</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span> <span class="n">event_sensitivity</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
@@ -1462,6 +1470,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="n">simulation_data</span>
         <span class="k">return</span> <span class="n">simulation_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rc</span></div>
+
 </pre></div>
 
           </div>
@@ -1478,17 +1487,17 @@
     <div class="clearer"></div>
   </div>
     <div class="footer">
-      &copy;Copyright (C) 2017-2024.
+      &#169;Copyright (C) 2017-2024.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.1.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
       
     </div>
 
     
     <a href="https://github.com/GillesPy2/GillesPy2" class="github">
-        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+        <img src="../../../../_static/github-banner.svg" alt="Fork me on GitHub" class="github"/>
     </a>
     
 
