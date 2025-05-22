@@ -63,10 +63,10 @@ class Make():
 
         # SCons can either be an executable or a Python package.
         scons_exe = shutil.which("scons")
-        if scons_exe is None:
-            self.scons_cmd = [str(Path(sys.executable).resolve()), "-m", "SCons"]
-        elif find_spec("SCons") is not None:
+        if scons_exe is not None:
             self.scons_cmd = [str(Path(scons_exe).resolve())]
+        elif find_spec("SCons") is not None:
+            self.scons_cmd = [str(Path(sys.executable).resolve()), "-m", "SCons"]
         else:
             raise BuildError("SCons must be installed in order to compile solver with C++")
 
