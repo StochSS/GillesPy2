@@ -69,7 +69,7 @@ Export('templates')
 SConscript(f'{output_root}/SConscript', duplicate=False)
 SConscript(f'{output_root}/{solver_path}/SConscript', duplicate=False)
 if 'sundials' in libdepends:
-    SConscript(f'{output_root}/Sundials/SConscript', duplciate=False)
+    SConscript(f'{output_root}/Sundials/SConscript', duplicate=False)
 if 'tau' in libdepends:
     SConscript(f'{output_root}/Tau/SConscript', duplicate=False)
 
