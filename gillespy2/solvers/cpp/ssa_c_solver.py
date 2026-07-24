@@ -43,7 +43,8 @@ class SSACSolver(GillesPySolver, CSolver):
 
     def run(self=None, model: Model = None, t: int = None, number_of_trajectories: int = 1, timeout: int = 0,
             increment: int = None, seed: int = None, debug: bool = False, profile: bool = False, variables={},
-            resume=None, live_output: str = None, live_output_options: dict = {}, **kwargs):
+            resume=None, live_output: str = None, live_output_options: dict = {},
+            build_definitions: "dict[str, str]" = None, **kwargs):
 
         from gillespy2 import log
 
