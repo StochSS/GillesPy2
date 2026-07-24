@@ -59,10 +59,13 @@ class CSolver:
 
     :param variable: Indicates whether the simulation should be variable.
     :type variable: bool
+
+    :param build_definitions: Dictionary of definitions to be passed to the build engine (e.g. {'cxxflags':'-O3'})
+    :type build_definitions: "dict[str, str]"
     """
     rc = 0
 
-    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False):
+    def __init__(self, model: Model = None, output_directory: str = None, delete_directory: bool = True, resume=None, variable: bool = False, build_definitions: "dict[str, str]" = None):
         if model is None:
             raise gillespyError.SimulationError("A model is required to run the simulation.")
 
@@ -79,6 +82,7 @@ class CSolver:
         self.resume = resume
         self.variable = variable
         self.build_engine: BuildEngine = None
+        self.build_definitions: "dict[str, str]" = build_definitions
 
         # Validate output_directory, ensure that it doesn't already exist
         if isinstance(output_directory, str):
@@ -106,7 +110,7 @@ class CSolver:
 
         self.build_engine.clean()
 
-    def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False) -> str:
+    def _build(self, model: "Union[Model, SanitizedModel]", simulation_name: str, variable: bool, debug: bool = False, build_definitions: "dict[str, str]" = None) -> str:
         """
         Generate and build the simulation from the specified Model and solver_name into the output_dir.
 
@@ -128,7 +132,7 @@ class CSolver:
             self.build_engine = BuildEngine(debug=debug, output_dir=self.output_directory)
             self.build_engine.prepare(model, variable)
             # Compile the simulation, returning the path of the executable.
-            return self.build_engine.build_simulation(simulation_name)
+            return self.build_engine.build_simulation(simulation_name, build_definitions)
 
         # Assume that the simulation has already been built.
         return self.build_engine.get_executable_path()
@@ -336,7 +340,7 @@ class CSolver:
         if model is not None:
             self.model = copy.deepcopy(model)
 
-        self._build(self.model, self.target, self.variable, False)
+        self._build(self.model, self.target, self.variable, False, self.build_definitions)
         self.species_mappings = self.model.sanitized_species_names()
         self.species = list(self.species_mappings.keys())
         self.parameter_mappings = self.model.sanitized_parameter_names()

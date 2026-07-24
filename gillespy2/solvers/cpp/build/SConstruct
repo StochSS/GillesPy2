@@ -51,6 +51,9 @@ env = Environment(
     # When MSVC (or any other compilers) are supported, update this to be a compiler-specific flag
     CXXFLAGS=['-std=c++14'],
 )
+extra_cxxflags = ARGUMENTS.get('EXTRA_CXXFLAGS', '')
+if extra_cxxflags:
+    env.Append(CXXFLAGS=extra_cxxflags.split())
 libdepends = [
     f'gpy{solver}',
     'gpystd'

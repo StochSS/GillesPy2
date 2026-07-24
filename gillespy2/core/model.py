@@ -1295,6 +1295,8 @@ class Model(SortableObject, Jsonify):
                 if "CSolver" in solver.name and \
                     ("resume" in solver_args or "variables" in solver_args or "live_output" in solver_args):
                     sol_kwargs['variable'] = True
+                if "build_definitions" in solver_args:
+                    sol_kwargs['build_definitions'] = solver_args['build_definitions']
                 solver = solver(**sol_kwargs)
             except Exception as err:
                 raise SimulationError(f"{solver} is not a valid solver.  Reason Given: {err}.") from err
