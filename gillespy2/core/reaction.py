@@ -201,7 +201,7 @@ class Reaction(SortableObject, Jsonify):
             '''
             # Visits Name nodes, if the name nodes "id" value is 'e', replace with numerical constant
             if node.id == 'e':
-                name_to_constant = ast.copy_location(ast.Num(float(np.e), ctx=node.ctx), node)
+                name_to_constant = ast.copy_location(ast.Constant(value=float(np.e)), node)
                 return name_to_constant
             return node
 
@@ -247,6 +247,17 @@ class Reaction(SortableObject, Jsonify):
             :type node: ast.Node
             '''
             self._string_changer(str(node.n))
+            self.generic_visit(node)
+
+        def visit_Constant(self, node):
+            '''
+            Visit constant node. Python 3.8 and later parse numbers as ast.Constant, and Python 3.14 no longer
+            calls visit_Num for them.
+
+            :param node: AST node object.
+            :type node: ast.Node
+            '''
+            self._string_changer(str(node.value))
             self.generic_visit(node)
 
         def visit_Call(self, node):
