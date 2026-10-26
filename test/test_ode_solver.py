@@ -15,6 +15,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest
+import math
+import warnings
+from unittest.mock import patch
 import sys
 sys.path.append("..")
 import numpy as np
@@ -102,6 +105,157 @@ class TestBasicODESolver(unittest.TestCase):
         result = model.run(solver=solver)
         sys.stderr.write(f"\ntest_shoch3(): B={result['B'][-1]}\n\n")
         self.assertGreater(result['B'][-1], 5)
+
+
+
+class TestODEIntegrationFailure(unittest.TestCase):
+    @staticmethod
+    def create_transfer():
+        model = gillespy2.Model(name='analytic_transfer')
+        a = gillespy2.Species(name='A', initial_value=1, mode='continuous')
+        b = gillespy2.Species(name='B', initial_value=0, mode='continuous')
+        k = gillespy2.Parameter(name='k', expression=1)
+        model.add_species([a, b])
+        model.add_parameter(k)
+        model.add_reaction(gillespy2.Reaction(name='transfer', reactants={a: 1},
+                                            products={b: 1}, rate=k))
+        model.timespan(np.linspace(0, 2, 3))
+        return model
+
+    def assert_transfer(self, result):
+        trajectory = result[0]
+        times = trajectory['time']
+        np.testing.assert_allclose(trajectory['A'], np.exp(-times), rtol=1e-7, atol=1e-9)
+        np.testing.assert_allclose(trajectory['B'], 1-np.exp(-times), rtol=1e-7, atol=1e-9)
+        np.testing.assert_allclose(trajectory['A'] + trajectory['B'], 1, rtol=0, atol=1e-12)
+        self.assertEqual(result[0].status, 'Success')
+
+    def test_real_integrator_failure_modes_raise(self):
+        for options, expected_code in [({'nsteps': 1}, -1),
+                                       ({'rtol': 1e-30, 'atol': 1e-30}, -3)]:
+            with self.subTest(options=options):
+                solver = ODESolver(model=self.create_transfer())
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', UserWarning)
+                    with self.assertRaises(SimulationError) as caught:
+                        solver.run(integrator='vode', integrator_options=options)
+                self.assertEqual(solver.rc, -1)
+                self.assertEqual(solver.result, [])
+                self.assertIn('requested time 1.0', str(caught.exception.__cause__))
+                self.assertIn('integrator return code ' + str(expected_code),
+                              str(caught.exception.__cause__))
+
+    def test_failure_after_valid_sample_does_not_publish_results(self):
+        from gillespy2.solvers.numpy import ode_solver
+
+        class FailedIntegrator:
+            calls = []
+
+            def __init__(self, function):
+                self.t = 0
+
+            def set_integrator(self, *args, **kwargs):
+                return self
+
+            def set_initial_value(self, y, t):
+                self.t = t
+                return self
+
+            def set_f_params(self, *args):
+                return self
+
+            def integrate(self, requested):
+                self.calls.append(requested)
+                self.t = requested if len(self.calls) == 1 else 1.25
+                return [math.exp(-self.t), 1-math.exp(-self.t)]
+
+            def successful(self):
+                return len(self.calls) == 1
+
+            def get_return_code(self):
+                return -5
+
+        solver = ODESolver(model=self.create_transfer())
+        with patch.object(ode_solver, 'ode', FailedIntegrator):
+            with patch.object(ode_solver.Results, 'build_from_solver_results') as publish:
+                with self.assertRaises(SimulationError) as caught:
+                    solver.run()
+                publish.assert_not_called()
+        self.assertEqual(FailedIntegrator.calls, [1.0, 2.0])
+        self.assertIn('requested time 2.0, reached 1.25', str(caught.exception.__cause__))
+        self.assertEqual(solver.result, [])
+
+    def test_failure_stops_at_first_output(self):
+        from gillespy2.solvers.numpy import ode_solver
+        backend_calls = []
+
+        class FailedIntegrator:
+            def __init__(self, function):
+                self.t = 0.0
+
+            def set_integrator(self, *args, **kwargs):
+                return self
+
+            def set_initial_value(self, y, t):
+                return self
+
+            def set_f_params(self, *args):
+                return self
+
+            def integrate(self, requested):
+                backend_calls.append(requested)
+                return [1, 0]
+
+            def successful(self):
+                return False
+
+            def get_return_code(self):
+                return -4
+
+        solver = ODESolver(model=self.create_transfer())
+        with patch.object(ode_solver, 'ode', FailedIntegrator):
+            with self.assertRaises(SimulationError):
+                solver.run()
+        self.assertEqual(backend_calls, [1.0])
+        self.assertEqual(solver.result, [])
+
+    def test_successful_retry_after_failure(self):
+        solver = ODESolver(model=self.create_transfer())
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', UserWarning)
+            with self.assertRaises(SimulationError):
+                solver.run(integrator='vode', integrator_options={'nsteps': 1})
+        self.assert_transfer(solver.run(integrator_options={'rtol': 1e-10, 'atol': 1e-12}))
+        self.assertEqual(solver.rc, 0)
+        self.assertFalse(hasattr(solver, 'has_raised_exception'))
+
+    def test_failed_retry_does_not_return_prior_success(self):
+        solver = ODESolver(model=self.create_transfer())
+        self.assert_transfer(solver.run(integrator_options={'rtol': 1e-10, 'atol': 1e-12}))
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', UserWarning)
+            with self.assertRaises(SimulationError):
+                solver.run(integrator='vode', integrator_options={'nsteps': 1})
+        self.assertEqual(solver.result, [])
+
+    def test_successful_analytic_solution_and_duplicate_trajectories(self):
+        for integrator in ['vode', 'lsoda', 'dopri5', 'dop853']:
+            with self.subTest(integrator=integrator):
+                solver = ODESolver(model=self.create_transfer())
+                result = solver.run(integrator=integrator, number_of_trajectories=2,
+                                    integrator_options={'rtol': 1e-10, 'atol': 1e-12})
+                self.assert_transfer(result)
+                self.assertEqual(len(result), 2)
+                np.testing.assert_array_equal(result[0]['A'], result[1]['A'])
+
+    def test_resume_retains_valid_solution(self):
+        model = self.create_transfer()
+        solver = ODESolver(model=model)
+        first = solver.run(integrator_options={'rtol': 1e-10, 'atol': 1e-12})
+        resumed = solver.run(resume=first, t=4,
+                             integrator_options={'rtol': 1e-10, 'atol': 1e-12})
+        self.assert_transfer(resumed)
+        self.assertEqual(resumed['time'][-1], 4)
 
 if __name__ == '__main__':
     #unittest.main()

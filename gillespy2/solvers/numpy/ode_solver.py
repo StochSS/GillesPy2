@@ -132,6 +132,8 @@ class ODESolver(GillesPySolver):
         
         :returns: A result object containing the results of the simulation.
         :rtype: gillespy2.Results
+
+        :raises SimulationError: The integrator fails before reaching a requested output time.
         """
         from gillespy2 import log
 
@@ -169,6 +171,10 @@ class ODESolver(GillesPySolver):
 
         self.stop_event = Event()
         self.pause_event = Event()
+        self.result = None
+        self.rc = 0
+        if hasattr(self, 'has_raised_exception'):
+            del self.has_raised_exception
 
         if timeout is not None and timeout <= 0:
             timeout = None
@@ -267,6 +273,7 @@ class ODESolver(GillesPySolver):
                        **kwargs)
         except Exception as e:
             self.has_raised_exception = e
+            self.rc = -1
             self.result = []
             return [], -1
 
@@ -322,6 +329,11 @@ class ODESolver(GillesPySolver):
             int_time = curr_time[0] + increment
             entry_count += 1
             y0 = rhs.integrate(int_time)
+            if not rhs.successful():
+                raise SimulationError(
+                    f"ODE integration with '{integrator}' failed: requested time {int_time}, "
+                    f"reached {rhs.t}, integrator return code {rhs.get_return_code()}."
+                )
             curr_time[0] += increment
             for i, spec in enumerate(self.model.listOfSpecies):
                 curr_state[0][spec] = y0[i]
